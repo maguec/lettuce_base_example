@@ -12,8 +12,8 @@ public class App {
     private final static int KEY_COUNT = 1000000;
 
     public static void main(String[] args) throws Exception {
-        //RedisClusterClient redisClient = RedisClusterClient.create("redis://35.236.67.152:15989/0");
-        RedisClusterClient redisClient = RedisClusterClient.create("redis://localhost:30001/0");
+        RedisClusterClient redisClient = RedisClusterClient.create("redis://35.236.67.152:15989/0");
+        //RedisClusterClient redisClient = RedisClusterClient.create("redis://localhost:30001/0");
         StatefulRedisClusterConnection<String, String> connection = redisClient.connect();
         System.out.println("Connected to Redis");
         RedisAdvancedClusterCommands<String, String> syncCommands = connection.sync();
