@@ -1,29 +1,32 @@
 package com.redislabs.lettucetest;
 
-import java.util.List;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
-import io.lettuce.core.KeyValue;
-import io.lettuce.core.cluster.RedisClusterClient;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
-import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.support.ConnectionPoolSupport;
 
 public class App {
 
-    private final static int KEY_COUNT = 1000000;
+    private final static int KEY_COUNT = 100;
 
     public static void main(String[] args) throws Exception {
-        RedisClusterClient redisClient = RedisClusterClient.create("redis://test123@redis-10003.azure1.mague.com:10003/0");
-        //RedisClusterClient redisClient = RedisClusterClient.create("redis://localhost:30001/0");
-        StatefulRedisClusterConnection<String, String> connection = redisClient.connect();
-        System.out.println("Connected to Redis");
-        RedisAdvancedClusterCommands<String, String> syncCommands = connection.sync();
-        String[] keys = keys();
-        for (String key : keys) {
-            syncCommands.set(key, key + "-value");
+        RedisClient client = RedisClient.create(RedisURI.create("redis://test123@redis-10003.azure1.mague.com:10003/0"));
+        GenericObjectPool<StatefulRedisConnection<String, String>> pool = ConnectionPoolSupport.createGenericObjectPool(() -> client.connect(), new GenericObjectPoolConfig());
+        System.out.println("Connection pool to Redis");
+        try (StatefulRedisConnection<String, String> connection = pool.borrowObject()) {
+            RedisCommands<String, String> commands = connection.sync();
+            commands.multi();
+            String[] keys = keys();
+            for (String key : keys) {
+                commands.set(key, key + "-value");
+            }
+            commands.exec();
         }
-        List<KeyValue<String, String>> results = syncCommands.mget(keys);
-        System.out.println(results.size());
-        connection.close();
+        pool.close();
         redisClient.shutdown();
     }
 
