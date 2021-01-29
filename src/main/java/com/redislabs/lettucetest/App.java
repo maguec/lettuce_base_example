@@ -13,7 +13,7 @@ import io.lettuce.core.support.ConnectionPoolSupport;
 public class App {
 
     public static void main(String[] args) throws Exception {
-        RedisClient client = RedisClient.create(RedisURI.create("redis://failover-tester@redis-10337.mague.demo-azure.redislabs.com:10337/0"));
+        RedisClient client = RedisClient.create(RedisURI.create("redis://smally@redis-16031.mague.demo-azure.redislabs.com:16031/0"));
         GenericObjectPool<StatefulRedisConnection<String, String>> pool =
             ConnectionPoolSupport.createGenericObjectPool(client::connect, new GenericObjectPoolConfig());
         System.out.println("Connection pool to Redis");
